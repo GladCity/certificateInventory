@@ -29,14 +29,16 @@ class DataBase:
         pass
         # cursor = self.__conn.cursor()
         # cursor.execute(f"INSERT INTO cert (scan, ) VALUES ({id}, )")
+        # self.__conn.commit()
 
     def get_conf(self):
         return self.__conf
 
-    def set_conf(self, next_scan, scandelta, ip):
+    def set_conf(self, next_scan, scandelta, ip, port):
         self.__conf["next_scan"] = next_scan
         self.__conf["scandelta"] = scandelta
         self.__conf["ip"] = ip
+        self.__conf["port"] = port
 
     def save_conf(self):
         with open("conf.json", "w") as write_file:
@@ -45,6 +47,11 @@ class DataBase:
     def insert_user(self, teleid):
         cursor = self.__conn.cursor()
         cursor.execute(f"INSERT INTO users (teleid) VALUES ('{teleid}')")
+        self.__conn.commit()
+
+    def delete_user(self, teleid):
+        cursor = self.__conn.cursor()
+        cursor.execute(f"DELETE FROM users WHERE teleid='{teleid}'")
         self.__conn.commit()
 
     def get_user_list(self):
