@@ -36,8 +36,9 @@ class DataBase:
         self.__conf["next_scan"] = next_scan
         self.__conf["scandelta"] = scandelta
         self.__conf["ip"] = ip
+        self.__save_conf()
 
-    def save_conf(self):
+    def __save_conf(self):
         with open("conf.json", "w") as write_file:
             json.dump(self.__conf, write_file)
 
