@@ -17,6 +17,7 @@ class DataBase:
     def make_scan(self):
         cursor = self.__conn.cursor()
         cursor.execute("INSERT INTO scans (data, time) VALUES (now(), now());")
+        self.__conn.commit()
 
     def get_cert(self, id):
         pass
@@ -45,16 +46,26 @@ class DataBase:
     def insert_user(self, teleid):
         cursor = self.__conn.cursor()
         cursor.execute(f"INSERT INTO users (teleid) VALUES ('{teleid}')")
+        self.__conn.commit()
 
     def get_user_list(self):
         cursor = self.__conn.cursor()
         cursor.execute(f"SELECT teleid FROM users")
-        return cursor.fetchall()
+        return [i[0] for i in cursor.fetchall()]
+
+    def add_sign_center(self, comp):
+        cursor = self.__conn.cursor()
+        cursor.execute(f"INSERT INTO certlist (com) VALUES ('{comp}');")
+        self.__conn.commit()
+
+    def get_sign_center_list(self):
+        cursor = self.__conn.cursor()
+        cursor.execute(f"SELECT com FROM certlist;")
+        return [i[0] for i in cursor.fetchall()]
 
 
 if __name__ == "__main__":
     db = DataBase()
+
     print([str(i[0]) + ") " + str(i[1]) + " " + str(i[2]).split(".")[0] for i in db.get_scans()])
-    print(db.get_conf())
-    db.set_conf(1111111, 222222, "123.123.123.123\\24")
-    db.save_conf()
+    print(list(db.get_sign_center_list()))
