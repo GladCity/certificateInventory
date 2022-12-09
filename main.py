@@ -1,5 +1,5 @@
 def main():
-    print("hi tema")
+    pass
 
 
 if __name__ == '__main__':
