@@ -18,7 +18,7 @@ class telegram():
         self.conf_bools = ["ignore1y", "ignorekl", "ignorenvc", "ignoreexc", "ignorealgo"]
         self.tokens = dict()
         self.db = db
-        self.config = telegram.savol_json_to_my(db.get_conf())
+        self.config = telegram.savol_json_to_my(db.get_conf().copy())
         # self.config = {"next_scan": next_scan,
         #                "scandelta": scandelta,
         #                "port": port,
