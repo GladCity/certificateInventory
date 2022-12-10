@@ -1,1 +1,13 @@
-{"next_scan": 1111111, "scandelta": 222222, "ip": "123.123.123.123\\24", "port": "443-443"}
+{
+  "next_scan": 1111111,
+  "scandelta": 222222,
+  "ip": "123.123.123.123\\24",
+  "port": "443-443",
+  "ignore1Y": false,
+  "ignoreKL": false,
+  "ignoreNVC": false,
+  "ignoreExc": false,
+  "ignoreAlgo": false,
+  "checkCenter": "",
+  "checkDate": ""
+}

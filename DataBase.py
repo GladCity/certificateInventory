@@ -20,27 +20,37 @@ class DataBase:
         self.__conn.commit()
 
     def get_cert(self, id):
-        pass
-        # cursor = self.__conn.cursor()
-        # cursor.execute(f"SELECT  FROM cert WHERE scan = {id};")
-        # return cursor.fetchall()
+        cursor = self.__conn.cursor()
+        cursor.execute(f"""SELECT verdict, cryptAlgo, serialNumber, hash, lenghtOpenKey, 
+        isdToWhom, WhoIsd, ValidUntil FROM cert WHERE scan = {id};""")
+        return cursor.fetchall()
 
-    def insert_cert(self, id):
-        pass
-        # cursor = self.__conn.cursor()
-        # cursor.execute(f"INSERT INTO cert (scan, ) VALUES ({id}, )")
-        # self.__conn.commit()
+    def insert_cert(self, id, verdict, cryptAlgo, serialNumber, hash, lenghtOpenKey, isdToWhom, WhoIsd, ValidUntil):
+        cursor = self.__conn.cursor()
+        cursor.execute(f'''INSERT INTO cert (scan, verdict, cryptAlgo, serialNumber, hash, lenghtOpenKey, isdToWhom, 
+        WhoIsd, ValidUntil) VALUES ({id},'{verdict}','{cryptAlgo}','{serialNumber}','{hash}','{lenghtOpenKey}',
+        '{isdToWhom}','{WhoIsd}','{ValidUntil}');''')
+        self.__conn.commit()
 
     def get_conf(self):
         return self.__conf
 
-    def set_conf(self, next_scan, scandelta, ip, port):
+    def set_conf(self, next_scan, scandelta, ip, port, ignore1Y, ignoreKL, ignoreNVC, ignoreExc, ignoreAlgo,
+                 checkCenter, checkDate):
         self.__conf["next_scan"] = next_scan
         self.__conf["scandelta"] = scandelta
         self.__conf["ip"] = ip
         self.__conf["port"] = port
+        self.__conf["ignore1Y"] = ignore1Y
+        self.__conf["ignoreKL"] = ignoreKL
+        self.__conf["ignoreNVC"] = ignoreNVC
+        self.__conf["ignoreExc"] = ignoreExc
+        self.__conf["ignoreAlgo"] = ignoreAlgo
+        self.__conf["checkCenter"] = checkCenter
+        self.__conf["checkDate"] = checkDate
+        self.__save_conf()
 
-    def save_conf(self):
+    def __save_conf(self):
         with open("conf.json", "w") as write_file:
             json.dump(self.__conf, write_file)
 
@@ -68,10 +78,3 @@ class DataBase:
         cursor = self.__conn.cursor()
         cursor.execute(f"SELECT com FROM certlist;")
         return [i[0] for i in cursor.fetchall()]
-
-
-if __name__ == "__main__":
-    db = DataBase()
-
-    print([str(i[0]) + ") " + str(i[1]) + " " + str(i[2]).split(".")[0] for i in db.get_scans()])
-    print(list(db.get_sign_center_list()))
