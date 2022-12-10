@@ -1,4 +1,5 @@
 import csv
+import threading
 import time
 from typing import List
 import struct
@@ -32,7 +33,7 @@ class Scanner:
         self.__check_centers = self.__db.get_sign_center_list()
         if self.__conf["checkdate"] != "":
             dt = self.__conf['checkdate']
-            self.__check_date = datetime(int(dt[4:8]), int(dt[2:4]), int(dt[0:2]), int(dt[8:10]), int(dt[10:12]))
+            self.__check_date = datetime(int(dt[0:4]), int(dt[4:6]), int(dt[6:8]), int(dt[8:10]), int(dt[10:]))
         self.__portb = int(self.__conf['port'].split('-')[0])
         self.__porte = int(self.__conf['port'].split('-')[1])
 
@@ -83,6 +84,7 @@ class Scanner:
                               domain_chain[0]['Длинна открытого ключа'], domain_chain[0]["Кому выдан"],
                               domain_chain[0]["Кем выдан"], domain_chain[0]["Действует до"]])
         Scanner.write_csv(lists)
+        threading.Thread(target=self.__bot.broadcast_file.start, args=("report.csv")).start()
         return schedule.CancelJob if self.__update else None
 
     def update(self):

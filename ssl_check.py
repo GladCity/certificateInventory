@@ -45,14 +45,8 @@ def cert_domain_info(hostname, port):
                 for item in issuer:
                     if item[0].decode('utf-8') == 'CN':
                         cert_info.update({'Кем выдан': item[1].decode('utf-8')})
-
-                if not cert.has_expired():
-                    cert_info.update({'Действует до': str(datetime.strptime(str(cert.get_notAfter().decode('utf-8')),
-                                                                            "%Y%m%d%H%M%SZ"))})
-                else:
-                    cert_info.update(
-                        {'Истек срок действия': str(datetime.strptime(str(cert.get_notAfter().decode('utf-8')),
-                                                                      "%Y%m%d%H%M%SZ"))})
+                cert_info.update({'Действует до': str(datetime.strptime(str(cert.get_notAfter().decode('utf-8')),
+                                                                        "%Y%m%d%H%M%SZ"))})
                 cert_chain.append(cert_info.copy())
             conn.close()
         except:
@@ -80,7 +74,7 @@ def is_certified_by_trusted_root_certification_authority(list_of_trca, cert_chai
         return str("Сертификационная цепочка валидна")
     if cert_chain[-1]["Кем выдан"] == 'invalid2.invalid':
         return str("Сертификат домена не содержит данные о эмитенте. Возможно сертификат домена является "
-        "самоподписанным. Безопасное соединение не гарантируется!")
+                   "самоподписанным. Безопасное соединение не гарантируется!")
     return str(
         "В сертификационной цепочке не обнаружен доверенный корневой центр сертификации: сертификат домена является "
         "самоподписанным. Безопасное соединение не гарантируется!")
@@ -133,6 +127,7 @@ def is_valid_period_ends_before_specified_date(date, cert_chain):
 
 def is_encription_algorithm_unreliable(cert_chain):
     for i in cert_chain:
-        if "sha256WithRSAEncryption" != i['Алгоритм шифрования'] or "ecdsa-with-SHA384" != i['Алгоритм шифрования'] or "ecdsa-with-SHA256" != i['Алгоритм шифрования']:
+        if "sha256WithRSAEncryption" != i['Алгоритм шифрования'] or "ecdsa-with-SHA384" != i[
+            'Алгоритм шифрования'] or "ecdsa-with-SHA256" != i['Алгоритм шифрования']:
             return "В цепочке сертификации присутствует ненадежный алгоритм шифрования"
     return "Все алгоритмы шифрования в цепочке надежны"

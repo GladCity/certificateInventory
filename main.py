@@ -18,7 +18,7 @@ def main():
                         help="Telegram bot token")
     parser.add_argument('-C', '--checkCenter', type=str, default="", help="Specify your certification authority")
     parser.add_argument('-D', '--checkDate', type=str, default="",
-                        help="Output valid certificates up to a certain date (DDMMYYYYHHMM)")
+                        help="Output valid certificates up to a certain date (YYYYMMDDHHMM)")
     parser.add_argument('-y', '--i1Y', help='Do not allocate certificates issued for more than a year',
                         action='store_true')
     parser.add_argument('-k', '--iKL', help='Do not allocate certificates with a small key length', action='store_true')
@@ -41,6 +41,7 @@ def main():
     # bot =
     scanner = Scanner(db, bot)
 
+    t1 = threading.Thread(target=scanner.run())
     t1 = threading.Thread(target=scanner.run())
     t1.start()
 
