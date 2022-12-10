@@ -1,13 +1,13 @@
 {
-  "next_scan": 1111111,
-  "scandelta": 222222,
-  "ip": "123.123.123.123\\24",
+  "next_scan": "202212110346",
+  "scandelta": 10,
+  "ip": "csv",
   "port": "443-443",
-  "ignore1Y": false,
-  "ignoreKL": false,
-  "ignoreNVC": false,
-  "ignoreExc": false,
-  "ignoreAlgo": false,
-  "checkCenter": "",
-  "checkDate": ""
+  "ignore1y": false,
+  "ignorekl": false,
+  "ignorenvc": false,
+  "ignoreexc": false,
+  "ignorealgo": false,
+  "checkcenter": "",
+  "checkdate": ""
 }

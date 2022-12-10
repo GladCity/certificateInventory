@@ -16,8 +16,9 @@ class DataBase:
 
     def make_scan(self):
         cursor = self.__conn.cursor()
-        cursor.execute("INSERT INTO scans (data, time) VALUES (now(), now());")
+        cursor.execute("INSERT INTO scans (data, time) VALUES (now(), now()) RETURNING id;")
         self.__conn.commit()
+        return cursor.fetchall()[0][0]
 
     def get_cert(self, id):
         cursor = self.__conn.cursor()
@@ -35,19 +36,30 @@ class DataBase:
     def get_conf(self):
         return self.__conf
 
-    def set_conf(self, next_scan, scandelta, ip, port, ignore1Y, ignoreKL, ignoreNVC, ignoreExc, ignoreAlgo,
-                 checkCenter, checkDate):
-        self.__conf["next_scan"] = next_scan
-        self.__conf["scandelta"] = scandelta
-        self.__conf["ip"] = ip
-        self.__conf["port"] = port
-        self.__conf["ignore1Y"] = ignore1Y
-        self.__conf["ignoreKL"] = ignoreKL
-        self.__conf["ignoreNVC"] = ignoreNVC
-        self.__conf["ignoreExc"] = ignoreExc
-        self.__conf["ignoreAlgo"] = ignoreAlgo
-        self.__conf["checkCenter"] = checkCenter
-        self.__conf["checkDate"] = checkDate
+    def set_conf(self, next_scan=None, scandelta=None, ip=None, port=None, ignore1Y=None, ignoreKL=None, ignoreNVC=None,
+                 ignoreExc=None, ignoreAlgo=None, checkCenter=None, checkDate=None):
+        if next_scan is not None:
+            self.__conf["next_scan"] = next_scan
+        if scandelta is not None:
+            self.__conf["scandelta"] = scandelta
+        if ip is not None:
+            self.__conf["ip"] = ip
+        if port is not None:
+            self.__conf["port"] = port
+        if ignore1Y is not None:
+            self.__conf["ignore1y"] = ignore1Y
+        if ignoreKL is not None:
+            self.__conf["ignorekl"] = ignoreKL
+        if ignoreNVC is not None:
+            self.__conf["ignorenvc"] = ignoreNVC
+        if ignoreExc is not None:
+            self.__conf["ignoreexc"] = ignoreExc
+        if ignoreAlgo is not None:
+            self.__conf["ignorealgo"] = ignoreAlgo
+        if checkCenter is not None:
+            self.__conf["checkcenter"] = checkCenter
+        if checkDate is not None:
+            self.__conf["checkdate"] = checkDate
         self.__save_conf()
 
     def __save_conf(self):

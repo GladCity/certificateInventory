@@ -6,8 +6,8 @@ import certifi
 
 def cert_domain_info(hostname, port):
     methods = [
-        (SSL.SSLv2_METHOD, "SSL.SSLv2_METHOD"),
-        (SSL.SSLv3_METHOD, "SSL.SSLv3_METHOD"),
+        # (SSL.SSLv2_METHOD, "SSL.SSLv2_METHOD"),
+        # (SSL.SSLv3_METHOD, "SSL.SSLv3_METHOD"),
         (SSL.SSLv23_METHOD, "SSL.SSLv23_METHOD"),
         (SSL.TLSv1_METHOD, "SSL.TLSv1_METHOD"),
         (SSL.TLSv1_1_METHOD, "SSL.TLSv1_1_METHOD"),
@@ -29,26 +29,29 @@ def cert_domain_info(hostname, port):
             conn.do_handshake()
             conn.set_tlsext_host_name(hostname.encode())
             for (idx, cert) in enumerate(conn.get_peer_cert_chain()):
-                cert_info.update({'Алгоритм шифрования': cert.get_signature_algorithm().decode('utf-8')})
-                cert_info.update({'Серийный номер': cert.get_serial_number()})
-                cert_info.update({'Хэш имени субъекта': cert.subject_name_hash()})
-                cert_info.update({'Длинна открытого ключа': cert.get_pubkey().bits()})
+                cert_info.update(
+                    {'Алгоритм шифрования': cert.get_signature_algorithm().decode('utf-8')})  # Алгоритм шифрования
+                cert_info.update({'Серийный номер': cert.get_serial_number()})  # Серийный номер
+                cert_info.update({'Хэш имени субъекта': cert.subject_name_hash()})  # Хэш имени субъекта
+                cert_info.update({'Длинна открытого ключа': cert.get_pubkey().bits()})  # Длинна открытого ключа
                 sub_list = cert.get_subject().get_components()
                 issuer = cert.get_issuer().get_components()
                 for item in sub_list:
                     if item[0].decode('utf-8') == 'CN':
-                        cert_info.update({'Кому выдан': item[1].decode('utf-8')})
+                        cert_info.update({'Кому выдан': item[1].decode('utf-8')})  # Кому выдан
 
                 for item in issuer:
                     if item[0].decode('utf-8') == 'CN':
-                        cert_info.update({'Кем выдан': item[1].decode('utf-8')})
+                        cert_info.update({'Кем выдан': item[1].decode('utf-8')})  # Кем выдан
 
                 if not cert.has_expired():
                     cert_info.update({'Действует до': str(datetime.strptime(str(cert.get_notAfter().decode('utf-8')),
-                                                                            "%Y%m%d%H%M%SZ"))})
+                                                                # Действует до
+                                                                "%Y%m%d%H%M%SZ"))})
                 else:
                     cert_info.update(
                         {'Истек срок действия': str(datetime.strptime(str(cert.get_notAfter().decode('utf-8')),
+                                                                      # Истек срок действия
                                                                       "%Y%m%d%H%M%SZ"))})
                 cert_chain.append(cert_info.copy())
             conn.close()
@@ -96,7 +99,7 @@ def is_valid_period_too_long(cert_chain):
 def is_public_key_length_enough(cert_chain):
     if len(cert_chain) < 1:
         return "Сертификат не найден"
-    if cert_chain['Длинна открытого ключа'] < 2048:
+    if cert_chain[0]['Длинна открытого ключа'] < 2048:
         return "Длинна ключа слишком мала"
     return "Длинна ключа соответсвует требованиям"
 
