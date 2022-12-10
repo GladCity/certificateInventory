@@ -330,7 +330,7 @@ class telegram():
                 try:
                     file_info = self.bot.get_file(message.document.file_id)
                     downloaded_file = self.bot.download_file(file_info.file_path)
-                    with open("userfile", 'wb') as new_file:
+                    with open("iplist.csv", 'wb') as new_file:
                         new_file.write(downloaded_file)
                     self.bot.reply_to(message, "Поймал!")
                 except Exception as e:
