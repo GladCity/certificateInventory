@@ -32,7 +32,10 @@ def cert_domain_info(hostname, port):
                 cert_info.update({'Алгоритм шифрования': cert.get_signature_algorithm().decode('utf-8')})
                 cert_info.update({'Серийный номер': cert.get_serial_number()})
                 cert_info.update({'Хэш имени субъекта': cert.subject_name_hash()})
-                cert_info.update({'Длинна открытого ключа': cert.get_pubkey().bits()})
+                lenkey = cert.get_pubkey().bits()
+                if lenkey < 512:
+                    lenkey *= 8
+                cert_info.update({'Длинна открытого ключа': lenkey})
                 sub_list = cert.get_subject().get_components()
                 issuer = cert.get_issuer().get_components()
                 for item in sub_list:
@@ -75,6 +78,9 @@ def is_certified_by_trusted_root_certification_authority(list_of_trca, cert_chai
         return "Сертификат не найден"
     if cert_chain[-1]["Кем выдан"] in list_of_trca:
         return str("Сертификационная цепочка валидна")
+    if cert_chain[-1]["Кем выдан"] == 'invalid2.invalid':
+        return str("Сертификат домена не содержит данные о эмитенте. Возможно сертификат домена является "
+        "самоподписанным. Безопасное соединение не гарантируется!")
     return str(
         "В сертификационной цепочке не обнаружен доверенный корневой центр сертификации: сертификат домена является "
         "самоподписанным. Безопасное соединение не гарантируется!")
@@ -127,6 +133,9 @@ def is_valid_period_ends_before_specified_date(date, cert_chain):
 
 def is_encription_algorithm_unreliable(cert_chain):
     for i in cert_chain:
-        if "sha256WithRSAEncryption" != i['Алгоритм шифрования']:
+        if "sha256WithRSAEncryption" != i['Алгоритм шифрования'] or "ecdsa-with-SHA384" != i['Алгоритм шифрования']:
             return "В цепочке сертификации присутствует ненадежный алгоритм шифрования"
     return "Все алгоритмы шифрования в цепочке надежны"
+
+for i in cert_domain_info("yandex.ru", 443):
+    print(i)
