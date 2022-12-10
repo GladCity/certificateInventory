@@ -36,6 +36,10 @@ class DataBase:
     def get_conf(self):
         return self.__conf
 
+    def set_file_conf(self, conf):
+        self.__conf = conf
+        self.__save_conf()
+
     def set_conf(self, next_scan=None, scandelta=None, ip=None, port=None, ignore1Y=None, ignoreKL=None, ignoreNVC=None,
                  ignoreExc=None, ignoreAlgo=None, checkCenter=None, checkDate=None):
         if next_scan is not None:

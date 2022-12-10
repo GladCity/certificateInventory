@@ -3,41 +3,35 @@ from DataBase import DataBase
 import secrets
 import datetime
 import re
+import threading
+from Scanner import Scanner
 
 
 class telegram():
     def __init__(self, telegram_token: str = '5894305427:AAE03pvAh-6u9p3nftQzYHlyx5E2Ra9GekM',
-                 next_scan: datetime.datetime = datetime.datetime(1970, 1, 1, 0, 0, 0, 0),
-                 scandelta: datetime.timedelta = datetime.timedelta(1.5),
-                 port: str = "443-443",
-                 ignore1y: bool = False,
-                 ignorekl: bool = False,
-                 ignorenvc: bool = False,
-                 ignoreexc: bool = False,
-                 ignorealgo: bool = False,
-                 checkcenter: datetime.datetime = datetime.datetime(1970, 1, 1, 0, 0, 0, 0),
-                 checkdate: datetime.datetime = datetime.datetime(1970, 1, 1, 0, 0, 0, 0),
-                 #reportdelta: datetime.timedelta = datetime.timedelta(0.2),
-                 ip: str = "iplist.csv",
-                 #is_alive: bool = True
+                 db: DataBase = DataBase(),
+                 scan: Scanner = Scanner()
                  ):
+        self.scan = scan
         self.bot = telebot.TeleBot(telegram_token)
         self.conf_bools = ["ignore1y", "ignorekl", "ignorenvc", "ignoreexc", "ignorealgo"]
         self.tokens = dict()
-        self.config = {"next_scan": next_scan,
-                       "scandelta": scandelta,
-                       "port": port,
-                       "ignore1y": ignore1y,
-                       "ignorekl": ignorekl,
-                       "ignorenvc": ignorenvc,
-                       "ignoreexc": ignoreexc,
-                       "ignorealgo": ignorealgo,
-                       "checkcenter": checkcenter,
-                       "checkdate": checkdate,
-                       #"reportdelta": reportdelta,
-                       "ip": ip,
-                       #"is_alive": is_alive
-                       }
+        self.db = db
+        self.config = telegram.savol_json_to_my(db.get_conf())
+        # self.config = {"next_scan": next_scan,
+        #                "scandelta": scandelta,
+        #                "port": port,
+        #                "ignore1y": ignore1y,
+        #                "ignorekl": ignorekl,
+        #                "ignorenvc": ignorenvc,
+        #                "ignoreexc": ignoreexc,
+        #                "ignorealgo": ignorealgo,
+        #                "checkcenter": checkcenter,
+        #                "checkdate": checkdate,
+        #                #"reportdelta": reportdelta,
+        #                "ip": ip
+        #                #"is_alive": is_alive
+        #                }
         self.explainconfig = {"next_scan": "Время и дата ближайшего сканирования",
                               "scandelta": "Интервал между сканированиями (минимум - 1 час)",
                               "reportdelta": "Интервал между отправкой отчетов во время сканирования (минимум - 5 минут)",
@@ -56,7 +50,7 @@ class telegram():
                               }
         self.one_hour = datetime.timedelta(hours=1)
         self.five_minutes = datetime.timedelta(minutes=5)
-        self.db = DataBase()
+        # self.db = DataBase()
         self.logger = telebot.logger
         telebot.logger.setLevel(telebot.logging.DEBUG)
         # Keyboards
@@ -77,8 +71,8 @@ class telegram():
             self.abilities.add(key5)
             key6 = telebot.types.InlineKeyboardButton(text='Добавить нового пользователя', callback_data='new')
             self.abilities.add(key6)
-            key7 = telebot.types.InlineKeyboardButton(text='Выключить рассылку', callback_data='stop')
-            self.abilities.add(key7)
+            # key7 = telebot.types.InlineKeyboardButton(text='Выключить рассылку', callback_data='stop')
+            # self.abilities.add(key7)
 
             # Second keyboard
             self.abilities_poweron = telebot.types.InlineKeyboardMarkup(row_width=3)
@@ -89,8 +83,8 @@ class telegram():
             self.abilities_poweron.add(key4, row_width=3)
             self.abilities_poweron.add(key5, row_width=3)
             self.abilities_poweron.add(key6, row_width=3)
-            key7_2 = telebot.types.InlineKeyboardButton(text='Включить рассылку', callback_data='start')
-            self.abilities_poweron.add(key7_2, row_width=3)
+            # key7_2 = telebot.types.InlineKeyboardButton(text='Включить рассылку', callback_data='start')
+            # self.abilities_poweron.add(key7_2, row_width=3)
 
             # Main menu keyboard
             self.markup = telebot.types.ReplyKeyboardMarkup(row_width=3, resize_keyboard=True)
@@ -99,13 +93,42 @@ class telegram():
 
             # Config keyboard
             self.markup_config = telebot.types.InlineKeyboardMarkup(row_width=3)
-            key8 = telebot.types.InlineKeyboardButton(text='ignore1Y', callback_data='ignore1Y')
-            key9 = telebot.types.InlineKeyboardButton(text='ignoreKL', callback_data='ignoreKL')
-            key10 = telebot.types.InlineKeyboardButton(text='ignoreNVC', callback_data='ignoreNVC')
+            key8 = telebot.types.InlineKeyboardButton(text='ignore1y', callback_data='ignore1y')
+            key9 = telebot.types.InlineKeyboardButton(text='ignorekl', callback_data='ignorekl')
+            key10 = telebot.types.InlineKeyboardButton(text='ignorenvc', callback_data='ignorenvc')
             self.markup_config.add(key8, key9, key10, row_width=3)
-            key11 = telebot.types.InlineKeyboardButton(text='ignoreExc', callback_data='ignoreExc')
-            key12 = telebot.types.InlineKeyboardButton(text='ignoreAlgo', callback_data='ignoreAlgo')
+            key11 = telebot.types.InlineKeyboardButton(text='ignoreexc', callback_data='ignoreexc')
+            key12 = telebot.types.InlineKeyboardButton(text='ignorealgo', callback_data='ignorealgo')
             self.markup_config.add(key11, key12, row_width=2)
+
+    @staticmethod
+    def savol_json_to_my(d):
+        conf = d
+        if conf["next_scan"] != "":
+            conf["next_scan"] = datetime.datetime(int(conf["next_scan"][0:4]), int(conf["next_scan"][4:6]),
+            int(conf["next_scan"][6:8]), int(conf["next_scan"][8:10]), int(conf["next_scan"][10:]))
+        if conf["checkdate"] != "":
+            conf["checkdate"] = datetime.datetime(int(conf["checkdate"][0:4]), int(conf["checkdate"][4:6]),
+            int(conf["checkdate"][6:8]), int(conf["checkdate"][8:10]), int(conf["checkdate"][10:]))
+        conf["scandelta"] = datetime.timedelta(seconds=conf["scandelta"]*3600)
+        return conf
+
+    @staticmethod
+    def add_char(c):
+        return "0" + c if len(c) == 1 else c
+    @staticmethod
+    def my_json_to_savol(conf):
+
+        conf["next_scan"] = telegram.add_char(str(conf["next_scan"].year)) + telegram.add_char(str(conf["next_scan"].month)) + \
+        telegram.add_char(str(conf["next_scan"].day)) + telegram.add_char(str(conf["next_scan"].hour)) + telegram.add_char(str(conf["next_scan"].minute))
+        if conf["checkdate"] != "":
+            conf["checkdate"] = telegram.add_char(str(conf["checkdate"].year)) + telegram.add_char(str(conf["checkdate"].month)) + \
+            telegram.add_char(str(conf["checkdate"].day)) + telegram.add_char(str(conf["checkdate"].hour)) + telegram.add_char(str(conf["checkdate"].minute))
+        conf["scandelta"] = conf["scandelta"].seconds % 3600
+        return conf
+
+
+
 
     @staticmethod
     def parse_date_and_time(dt: str):
@@ -114,6 +137,9 @@ class telegram():
 
     @staticmethod
     def export_to_date_and_time(dt: datetime.datetime):
+        if type(dt) == type("!"):
+            dt=datetime.datetime(int(dt[0:4]), int(dt[4:6]),
+                              int(dt[6:8]), int(dt[8:10]), int(dt[10:]))
         return "{}.{}.{} {}:{}".format(dt.year, dt.month, dt.day, dt.hour, dt.minute)
 
     def broadcast_string(self, s: str):
@@ -152,12 +178,19 @@ class telegram():
                 text = [x.strip() for x in message.text.split(" ", 1)]
                 text[0] = text[0].lower()
                 # next_scan, scandelta, reportdelta
-                if text[0].lower() in self.config and re.fullmatch(r"((\d+ (час\S{,2}|минут\S{,2}|дня|дней|день))|"
+
+                # Constants
+                if text[0] in self.conf_bools:
+                    self.config[text[0]] = not self.config[text[0]]
+                    self.db.set_file_conf(telegram.my_json_to_savol(self.config.copy()))
+                    self.bot.send_message(message.chat.id, 'Параметр {} успешно изменен!'.format(text[0]))
+
+                elif text[0].lower() in self.config and re.fullmatch(r"((\d+ (час\S{,2}|дня|дней|день))|"
                                                                    r"\d\d\d\d\.\d\d\.\d\d \d\d:\d\d)", text[1]):
-                    if text[0] in ["checkdate", "checkcenter"]: #next_scan
+                    if text[0] in ["checkdate"]: #next_scan
                         new_date = self.parse_date_and_time(text[1])
                         now = datetime.datetime.now()
-                        now.minutes = now.minutes + 3
+                        now.fromtimestamp(now.timestamp() + 180)
                         if new_date < now:
                             self.bot.send_message(message.from_user.id,
                                                   "Указана дата предшествующая или соответствующая текущей." +
@@ -166,6 +199,7 @@ class telegram():
                                                       text[0] == "next_scan" else ""))
                         else:
                             self.config[text[0]] = self.parse_date_and_time(text[1])
+                            self.db.set_file_conf(telegram.my_json_to_savol(self.config.copy()))
                             self.bot.reply_to(message, "Параметр {} изменен!".format(text[0]))
                     else:
                         new_delta = datetime.timedelta(seconds=int(text[1].split(" ", 1)[0]) * \
@@ -176,25 +210,29 @@ class telegram():
                         elif text[0] == "reportdelta" and new_delta < self.five_minutes:
                             self.bot.send_message(message.from_user.id,
                                                   "Период reportdelta не может быть менее пяти минут!")
+
                         else:
                             self.bot.reply_to(message, "Параметр {} изменен!".format(text[0]))
                             self.config[text[0]] = new_delta
-                # Constants
-                elif text[0] in self.conf_bools:
-                    self.config[text[0]] = not self.config[text[0]]
-                    self.bot.send_message(message.chat.id, 'Параметр {} успешно изменен!'.format(text[0]))
+                            self.db.set_file_conf(telegram.my_json_to_savol(self.config.copy()))
+                elif text[0] == "checkcenter":
+                    self.config["checkcenter"] = text[1]
+                    self.db.set_file_conf(telegram.my_json_to_savol(self.config.copy()))
+                    self.bot.send_message(message.from_user.id,
+                                          "Параметр checkcenter успешно изменен!")
                 elif text[0].lower() == "port":
                     port_range = text[1].split("-")
                     if len(port_range) != 2 or not port_range[0].isdigit() or not port_range[1].isdigit():
                         self.bot.send_message(message.chat.id, "Диапазон портов указан неверно!")
                     else:
                         self.config[text[0]] = text[1]
+                        self.db.set_file_conf(telegram.my_json_to_savol(self.config.copy()))
                         self.bot.reply_to(message, "Диапазон портов изменен!")
 
 
                 # sending menu
                 else:
-                    if self.config["is_alive"]:
+                    if True:#self.config["is_alive"]:
                         self.bot.send_message(message.from_user.id, "Смотри, что я умею: ",
                                               reply_markup=self.abilities)
                         # bot.send_message(message.from_user.id, "1", reply_markup=markup)
@@ -205,6 +243,7 @@ class telegram():
 
         @self.bot.callback_query_handler(func=lambda call: True)
         def callback_worker(call):
+            call.data = call.data.lower()
             if call.data == "help":
                 self.bot.send_message(call.message.chat.id,
                                       'Чтобы вызвать главное меню, отправь любое сообщение или нажми на кнопку'
@@ -228,7 +267,7 @@ class telegram():
                         s += "*" + par + "*" + " --> " + str(self.config[par]).replace("day", "день").replace("days",
                                                                                             "дней") + " - " + \
                              self.explainconfig[par] + "\n"
-                    elif par in ["checkdate", "checkcenter"]: # next_scan
+                    elif par in ["checkdate"]: # next_scan
                         s += "*" + par + "*" + " --> " + self.export_to_date_and_time(self.config[par]) + " - " + \
                              self.explainconfig[
                                  par] + "\n"
@@ -236,6 +275,7 @@ class telegram():
                         s += "*" + par + "*" + " --> " + str(self.config[par]) + " - " + self.explainconfig[par] + "\n"
                 self.bot.send_message(call.message.chat.id, s, parse_mode='Markdown', reply_markup=self.markup_config)
             elif call.data == "scan":
+                threading.Thread(target=self.scan.scan).start()
                 self.bot.send_message(call.message.chat.id, 'Сканирование началось!')
             elif call.data == "get":
                 self.bot.send_message(call.message.chat.id, 'Лови файл!')
@@ -262,6 +302,7 @@ class telegram():
                 self.config["is_alive"] = True
             elif call.data.lower() in [x.lower() for x in self.conf_bools]:
                 self.config[call.data] = not self.config[call.data]
+                self.db.set_file_conf(telegram.my_json_to_savol(self.config.copy()))
                 self.bot.send_message(call.message.chat.id, 'Параметр {} успешно изменен!'.format(call.data))
 
         @self.bot.message_handler(content_types=['text'])
