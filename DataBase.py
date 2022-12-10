@@ -64,6 +64,7 @@ class DataBase:
             self.__conf["checkcenter"] = checkCenter
         if checkDate is not None:
             self.__conf["checkdate"] = checkDate
+        print(self.__conf)
         self.__save_conf()
 
     def __save_conf(self):
@@ -72,7 +73,10 @@ class DataBase:
 
     def insert_user(self, teleid):
         cursor = self.__conn.cursor()
-        cursor.execute(f"INSERT INTO users (teleid) VALUES ('{teleid}')")
+        try:
+            cursor.execute(f"INSERT INTO users (teleid) VALUES ('{teleid}')")
+        except psycopg2.Error:
+            print("duplicate user")
         self.__conn.commit()
 
     def delete_user(self, teleid):

@@ -1,1 +1,13 @@
-{"next_scan": "197001010000", "scandelta": 0, "port": "443-443", "ignore1y": false, "ignorekl": true, "ignorenvc": false, "ignoreexc": false, "ignorealgo": false, "checkcenter": "", "checkdate": "197001010000", "ip": "iplist.csv"}
+{
+  "next_scan": "202212102218",
+  "scandelta": 24,
+  "ip": "csv",
+  "port": "443-443",
+  "ignore1y": false,
+  "ignorekl": false,
+  "ignorenvc": false,
+  "ignoreexc": false,
+  "ignorealgo": false,
+  "checkcenter": "",
+  "checkdate": ""
+}

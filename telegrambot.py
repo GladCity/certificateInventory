@@ -4,13 +4,14 @@ import secrets
 import datetime
 import re
 import threading
+# from multiprocessing import Process
 from Scanner import Scanner
 
 
 class telegram():
     def __init__(self, telegram_token: str = '5894305427:AAE03pvAh-6u9p3nftQzYHlyx5E2Ra9GekM',
                  db: DataBase = DataBase(),
-                 scan: Scanner = Scanner()
+                 scan: Scanner = None
                  ):
         self.scan = scan
         self.bot = telebot.TeleBot(telegram_token)
@@ -106,40 +107,45 @@ class telegram():
         conf = d
         if conf["next_scan"] != "":
             conf["next_scan"] = datetime.datetime(int(conf["next_scan"][0:4]), int(conf["next_scan"][4:6]),
-            int(conf["next_scan"][6:8]), int(conf["next_scan"][8:10]), int(conf["next_scan"][10:]))
+                                                  int(conf["next_scan"][6:8]), int(conf["next_scan"][8:10]),
+                                                  int(conf["next_scan"][10:]))
         if conf["checkdate"] != "":
             conf["checkdate"] = datetime.datetime(int(conf["checkdate"][0:4]), int(conf["checkdate"][4:6]),
-            int(conf["checkdate"][6:8]), int(conf["checkdate"][8:10]), int(conf["checkdate"][10:]))
-        conf["scandelta"] = datetime.timedelta(seconds=conf["scandelta"]*3600)
+                                                  int(conf["checkdate"][6:8]), int(conf["checkdate"][8:10]),
+                                                  int(conf["checkdate"][10:]))
+        conf["scandelta"] = datetime.timedelta(seconds=conf["scandelta"] * 3600)
         return conf
 
     @staticmethod
     def add_char(c):
         return "0" + c if len(c) == 1 else c
+
     @staticmethod
     def my_json_to_savol(conf):
 
-        conf["next_scan"] = telegram.add_char(str(conf["next_scan"].year)) + telegram.add_char(str(conf["next_scan"].month)) + \
-        telegram.add_char(str(conf["next_scan"].day)) + telegram.add_char(str(conf["next_scan"].hour)) + telegram.add_char(str(conf["next_scan"].minute))
+        conf["next_scan"] = telegram.add_char(str(conf["next_scan"].year)) + telegram.add_char(
+            str(conf["next_scan"].month)) + \
+                            telegram.add_char(str(conf["next_scan"].day)) + telegram.add_char(
+            str(conf["next_scan"].hour)) + telegram.add_char(str(conf["next_scan"].minute))
         if conf["checkdate"] != "":
-            conf["checkdate"] = telegram.add_char(str(conf["checkdate"].year)) + telegram.add_char(str(conf["checkdate"].month)) + \
-            telegram.add_char(str(conf["checkdate"].day)) + telegram.add_char(str(conf["checkdate"].hour)) + telegram.add_char(str(conf["checkdate"].minute))
+            conf["checkdate"] = telegram.add_char(str(conf["checkdate"].year)) + telegram.add_char(
+                str(conf["checkdate"].month)) + \
+                                telegram.add_char(str(conf["checkdate"].day)) + telegram.add_char(
+                str(conf["checkdate"].hour)) + telegram.add_char(str(conf["checkdate"].minute))
         conf["scandelta"] = conf["scandelta"].seconds % 3600
         return conf
-
-
-
 
     @staticmethod
     def parse_date_and_time(dt: str):
         """Format: YYYY.MM.DD HH:MM"""
-        return datetime.datetime(int(dt[:4]), int(dt[5:7]), int(dt[8:10]), int(dt[11:13]), int(dt[14:]))
+        return datetime.datetime(int(dt[:4]), int(dt[4:6]), int(dt[6:8]), int(dt[8:10]), int(dt[10:]))
+        # return datetime.datetime(int(dt[:4]), int(dt[5:7]), int(dt[8:10]), int(dt[11:13]), int(dt[14:]))
 
     @staticmethod
     def export_to_date_and_time(dt: datetime.datetime):
         if type(dt) == type("!"):
-            dt=datetime.datetime(int(dt[0:4]), int(dt[4:6]),
-                              int(dt[6:8]), int(dt[8:10]), int(dt[10:]))
+            dt = datetime.datetime(int(dt[0:4]), int(dt[4:6]),
+                                   int(dt[6:8]), int(dt[8:10]), int(dt[10:]))
         return "{}.{}.{} {}:{}".format(dt.year, dt.month, dt.day, dt.hour, dt.minute)
 
     def broadcast_string(self, s: str):
@@ -186,8 +192,8 @@ class telegram():
                     self.bot.send_message(message.chat.id, 'Параметр {} успешно изменен!'.format(text[0]))
 
                 elif text[0].lower() in self.config and re.fullmatch(r"((\d+ (час\S{,2}|дня|дней|день))|"
-                                                                   r"\d\d\d\d\.\d\d\.\d\d \d\d:\d\d)", text[1]):
-                    if text[0] in ["checkdate"]: #next_scan
+                                                                     r"\d\d\d\d\.\d\d\.\d\d \d\d:\d\d)", text[1]):
+                    if text[0] in ["checkdate"]:  # next_scan
                         new_date = self.parse_date_and_time(text[1])
                         now = datetime.datetime.now()
                         now.fromtimestamp(now.timestamp() + 180)
@@ -232,7 +238,7 @@ class telegram():
 
                 # sending menu
                 else:
-                    if True:#self.config["is_alive"]:
+                    if True:  # self.config["is_alive"]:
                         self.bot.send_message(message.from_user.id, "Смотри, что я умею: ",
                                               reply_markup=self.abilities)
                         # bot.send_message(message.from_user.id, "1", reply_markup=markup)
@@ -263,11 +269,11 @@ class telegram():
                 self.bot.send_message(call.message.chat.id, 'Держи свои настройки!', reply_markup=self.markup)
                 s = ""
                 for par in self.config:
-                    if par in ["scandelta"]: #reportdelta
+                    if par in ["scandelta"]:  # reportdelta
                         s += "*" + par + "*" + " --> " + str(self.config[par]).replace("day", "день").replace("days",
-                                                                                            "дней") + " - " + \
+                                                                                                              "дней") + " - " + \
                              self.explainconfig[par] + "\n"
-                    elif par in ["checkdate"]: # next_scan
+                    elif par in ["checkdate"]:  # next_scan
                         s += "*" + par + "*" + " --> " + self.export_to_date_and_time(self.config[par]) + " - " + \
                              self.explainconfig[
                                  par] + "\n"
@@ -276,6 +282,7 @@ class telegram():
                 self.bot.send_message(call.message.chat.id, s, parse_mode='Markdown', reply_markup=self.markup_config)
             elif call.data == "scan":
                 threading.Thread(target=self.scan.scan).start()
+                # Process(target=self.scan.scan).start()
                 self.bot.send_message(call.message.chat.id, 'Сканирование началось!')
             elif call.data == "get":
                 self.bot.send_message(call.message.chat.id, 'Лови файл!')
@@ -342,9 +349,3 @@ class telegram():
 
     def bot_stop(self):
         self.bot.stop_polling()
-
-
-if __name__ == "__main__":
-    tel = telegram()
-    tel.bot_start()
-    #tel.broadcast_string("qwe")

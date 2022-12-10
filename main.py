@@ -1,6 +1,7 @@
 import argparse
 import threading
-
+# from multiprocessing import Process
+from telegrambot import telegram
 from DataBase import DataBase
 from Scanner import Scanner
 import datetime
@@ -33,17 +34,20 @@ def main():
     db.set_conf(
         next_scan=str(datetime.datetime.now()).split('.')[0].replace("-", "").replace(" ", "").replace(":", "")[:-2])
     if not prs.last:
-        db.set_conf(str(datetime.datetime.now()).replace("-", "").replace(" ", "").replace(":", "")[:-2], prs.interval,
-                    prs.ip, prs.port, prs.i1Y, prs.iKL, prs.iNVC,
+        db.set_conf(str(datetime.datetime.now()).split('.')[0].replace("-", "").replace(" ", "").replace(":", "")[:-2],
+                    prs.interval, prs.ip, prs.port, prs.i1Y, prs.iKL, prs.iNVC,
                     prs.iExc, prs.iAlg, prs.checkCenter, prs.checkDate)
 
-    scanner = None
-    # bot =
+    bot = None
     scanner = Scanner(db, bot)
+    bot = telegram(prs.token, db, scanner)
 
-    t1 = threading.Thread(target=scanner.run())
-    t1 = threading.Thread(target=scanner.run())
+    t1 = threading.Thread(target=scanner.run)
+    # t1 = Process(target=scanner.run)
+    t2 = threading.Thread(target=bot.bot_start)
+    # t2 = Process(target=bot.bot_start)
     t1.start()
+    t2.start()
 
 
 if __name__ == '__main__':

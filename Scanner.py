@@ -1,5 +1,6 @@
 import csv
 import threading
+# from multiprocessing import Process
 import time
 from typing import List
 import struct
@@ -84,7 +85,8 @@ class Scanner:
                               domain_chain[0]['Длинна открытого ключа'], domain_chain[0]["Кому выдан"],
                               domain_chain[0]["Кем выдан"], domain_chain[0]["Действует до"]])
         Scanner.write_csv(lists)
-        threading.Thread(target=self.__bot.broadcast_file.start, args=("report.csv")).start()
+        threading.Thread(target=self.__bot.broadcast_file.start, args="report.csv").start()
+        # Process(target=self.__bot.broadcast_file.start, args=("report.csv")).start()
         return schedule.CancelJob if self.__update else None
 
     def update(self):
@@ -93,6 +95,7 @@ class Scanner:
     def run(self):
         self.__next_scan += self.__scandelta
         self.__db.set_conf(next_scan=str(self.__next_scan).replace("-", "").replace(" ", "").replace(":", "")[:-2])
+        print(str(self.__next_scan).replace("-", "").replace(" ", "").replace(":", "")[:-2])
         while True:
             schedule.every(self.__scandelta.seconds // 3600).hours.do(self.scan, flag=True)
             self.__update = False
@@ -148,6 +151,6 @@ class Scanner:
         return socket.inet_ntoa(struct.pack("!I", addr))
 
 
-if __name__ == "__main__":
-    sc = Scanner(DataBase())
-    sc.scan()
+# if __name__ == "__main__":
+#     sc = Scanner(DataBase())
+#     sc.scan()
