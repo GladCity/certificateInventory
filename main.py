@@ -38,9 +38,9 @@ def main():
                     prs.interval, prs.ip, prs.port, prs.i1Y, prs.iKL, prs.iNVC,
                     prs.iExc, prs.iAlg, prs.checkCenter, prs.checkDate)
 
-    bot = None
+    bot = telegram(prs.token, db)
     scanner = Scanner(db, bot)
-    bot = telegram(prs.token, db, scanner)
+    bot.scan = scanner
 
     t1 = threading.Thread(target=scanner.run)
     # t1 = Process(target=scanner.run)

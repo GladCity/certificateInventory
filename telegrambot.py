@@ -19,6 +19,7 @@ class telegram():
         self.tokens = dict()
         self.db = db
         self.config = telegram.savol_json_to_my(db.get_conf().copy())
+        #("!!!!!!!!!!!!!", self.config)
         # self.config = {"next_scan": next_scan,
         #                "scandelta": scandelta,
         #                "port": port,
@@ -104,9 +105,8 @@ class telegram():
 
     @staticmethod
     def savol_json_to_my(d):
-        conf = d
-        if conf["next_scan"] != "":
-            conf["next_scan"] = datetime.datetime(int(conf["next_scan"][0:4]), int(conf["next_scan"][4:6]),
+        conf = d.copy()
+        conf["next_scan"] = datetime.datetime(int(conf["next_scan"][0:4]), int(conf["next_scan"][4:6]),
                                                   int(conf["next_scan"][6:8]), int(conf["next_scan"][8:10]),
                                                   int(conf["next_scan"][10:]))
         if conf["checkdate"] != "":
@@ -143,10 +143,14 @@ class telegram():
 
     @staticmethod
     def export_to_date_and_time(dt: datetime.datetime):
-        if type(dt) == type("!"):
-            dt = datetime.datetime(int(dt[0:4]), int(dt[4:6]),
-                                   int(dt[6:8]), int(dt[8:10]), int(dt[10:]))
-        return "{}.{}.{} {}:{}".format(dt.year, dt.month, dt.day, dt.hour, dt.minute)
+        if dt != "":
+            if type(dt) == type("!"):
+                #print(dt)
+                dt = datetime.datetime(int(dt[0:4]), int(dt[4:6]),
+                                       int(dt[6:8]), int(dt[8:10]), int(dt[10:]))
+            return "{}.{}.{} {}:{}".format(dt.year, dt.month, dt.day, dt.hour, dt.minute)
+        else:
+            return "-"
 
     def broadcast_string(self, s: str):
         for user in self.db.get_user_list():
@@ -167,7 +171,8 @@ class telegram():
                 token = secrets.token_hex(12)
                 print("Token for authentication in Telegram (live during one hour): " + token)
                 cur_date_and_hour = datetime.datetime.now()
-                cur_date_and_hour.hours = cur_date_and_hour.hours + 1
+                cur_date_and_hour = cur_date_and_hour.fromtimestamp(cur_date_and_hour.timestamp() + 180)
+
                 self.tokens[token] = cur_date_and_hour
                 if message.text.strip().lower() not in self.tokens:
                     self.bot.send_message(message.from_user.id, "Пожалуйста, пришли мне токен для авторизации!")
@@ -221,6 +226,7 @@ class telegram():
                             self.bot.reply_to(message, "Параметр {} изменен!".format(text[0]))
                             self.config[text[0]] = new_delta
                             self.db.set_file_conf(telegram.my_json_to_savol(self.config.copy()))
+                            self.scan.update()
                 elif text[0] == "checkcenter":
                     self.config["checkcenter"] = text[1]
                     self.db.set_file_conf(telegram.my_json_to_savol(self.config.copy()))
@@ -249,6 +255,7 @@ class telegram():
 
         @self.bot.callback_query_handler(func=lambda call: True)
         def callback_worker(call):
+            #print("!!!!!!!!!!!!!", self.config)
             call.data = call.data.lower()
             if call.data == "help":
                 self.bot.send_message(call.message.chat.id,
@@ -283,7 +290,7 @@ class telegram():
             elif call.data == "scan":
                 threading.Thread(target=self.scan.scan).start()
                 # Process(target=self.scan.scan).start()
-                self.bot.send_message(call.message.chat.id, 'Сканирование началось!')
+                #self.bot.send_message(call.message.chat.id, 'Сканирование началось!')
             elif call.data == "get":
                 self.bot.send_message(call.message.chat.id, 'Лови файл!')
                 with open("iplist.csv", "rb") as misc:

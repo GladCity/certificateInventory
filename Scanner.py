@@ -15,16 +15,19 @@ import ssl_check
 
 class Scanner:
     def __init__(self, db: DataBase, bot):
-        self.__bot = bot
+        self.bot = bot
         self.__db = db
         self.__update_conf()
         self.__update = False
+
+    # def getBot(self):
+    #     return self.__bot
 
     def __update_conf(self):
         self.__conf = self.__db.get_conf()
         dt = str(self.__conf['next_scan'])
         self.__next_scan = datetime(int(dt[0:4]), int(dt[4:6]), int(dt[6:8]), int(dt[8:10]), int(dt[10:]))
-        self.__scandelta = timedelta(hours=self.__conf['scandelta'])
+        self.__scandelta = timedelta(hours=int(self.__conf['scandelta']))
         ip = self.__conf['ip']
         if ip == "csv":
             out = Scanner.rafip_to_iplist(Scanner.read_csv("iplist.csv"))
@@ -40,6 +43,7 @@ class Scanner:
 
     def scan(self, flag=False):
         lists = []
+        threading.Thread(target=self.bot.broadcast_string, args=(("Сканирование началось",))).start()
         if flag:
             self.__next_scan += self.__scandelta
             self.__db.set_conf(next_scan=str(self.__next_scan).replace("-", "").replace(" ", "").replace(":", "")[:-2])
@@ -85,7 +89,7 @@ class Scanner:
                               domain_chain[0]['Длинна открытого ключа'], domain_chain[0]["Кому выдан"],
                               domain_chain[0]["Кем выдан"], domain_chain[0]["Действует до"]])
         Scanner.write_csv(lists)
-        threading.Thread(target=self.__bot.broadcast_file.start, args="report.csv").start()
+        threading.Thread(target=self.bot.broadcast_file, args=(("report.csv",))).start()
         # Process(target=self.__bot.broadcast_file.start, args=("report.csv")).start()
         return schedule.CancelJob if self.__update else None
 
@@ -95,9 +99,9 @@ class Scanner:
     def run(self):
         self.__next_scan += self.__scandelta
         self.__db.set_conf(next_scan=str(self.__next_scan).replace("-", "").replace(" ", "").replace(":", "")[:-2])
-        print(str(self.__next_scan).replace("-", "").replace(" ", "").replace(":", "")[:-2])
+        self.__update_conf()
         while True:
-            schedule.every(self.__scandelta.seconds // 3600).hours.do(self.scan, flag=True)
+            schedule.every(self.__scandelta.seconds // 3600 + self.__scandelta.days * 24).hours.do(self.scan, flag=True)
             self.__update = False
             while True:
                 schedule.run_pending()
@@ -149,7 +153,6 @@ class Scanner:
     @staticmethod
     def __int2ip(addr):
         return socket.inet_ntoa(struct.pack("!I", addr))
-
 
 # if __name__ == "__main__":
 #     sc = Scanner(DataBase())
