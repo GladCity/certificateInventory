@@ -1,5 +1,13 @@
 # certificateInventory
 
+
+usage: main.py [-h] [-i IP] [-p PORT] [-I INTERVAL] [-t TOKEN]
+               [-C CHECKCENTER] [-D CHECKDATE] [-y] [-k] [-n] [-e] [-a] [-l]
+
+This application is designed to periodically scan services running over the
+HTTPS protocol and verify their certificates
+
+options:
   -h, --help            show this help message and exit
   -i IP, --ip IP        IP addresses: x.x.x.x/-x.x.x.x or x.x.x.x/mask or csv
                         default=csv
@@ -21,6 +29,6 @@
   -a, --iAlg            Do not allocate certificates with outdated algorithms
   -l, --last            Run the latest configuration
   
-  # Installation
-  pip install schedule pyTelegramBotAPI pyOpenSSL psycopg2
+# Installation
+pip install schedule pyTelegramBotAPI pyOpenSSL psycopg2
   
