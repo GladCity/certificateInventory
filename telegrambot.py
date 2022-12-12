@@ -19,7 +19,7 @@ class telegram():
         self.tokens = dict()
         self.db = db
         self.config = telegram.savol_json_to_my(db.get_conf().copy())
-        #("!!!!!!!!!!!!!", self.config)
+        # ("!!!!!!!!!!!!!", self.config)
         # self.config = {"next_scan": next_scan,
         #                "scandelta": scandelta,
         #                "port": port,
@@ -107,8 +107,8 @@ class telegram():
     def savol_json_to_my(d):
         conf = d.copy()
         conf["next_scan"] = datetime.datetime(int(conf["next_scan"][0:4]), int(conf["next_scan"][4:6]),
-                                                  int(conf["next_scan"][6:8]), int(conf["next_scan"][8:10]),
-                                                  int(conf["next_scan"][10:]))
+                                              int(conf["next_scan"][6:8]), int(conf["next_scan"][8:10]),
+                                              int(conf["next_scan"][10:]))
         if conf["checkdate"] != "":
             conf["checkdate"] = datetime.datetime(int(conf["checkdate"][0:4]), int(conf["checkdate"][4:6]),
                                                   int(conf["checkdate"][6:8]), int(conf["checkdate"][8:10]),
@@ -145,7 +145,7 @@ class telegram():
     def export_to_date_and_time(dt: datetime.datetime):
         if dt != "":
             if type(dt) == type("!"):
-                #print(dt)
+                # print(dt)
                 dt = datetime.datetime(int(dt[0:4]), int(dt[4:6]),
                                        int(dt[6:8]), int(dt[8:10]), int(dt[10:]))
             return "{}.{}.{} {}:{}".format(dt.year, dt.month, dt.day, dt.hour, dt.minute)
@@ -158,10 +158,10 @@ class telegram():
 
     def broadcast_file(self, filename: str):
         for user in self.db.get_user_list():
-            self.bot.send_message(int(user), 'Лови файл!')
+            self.bot.send_message(int(user), 'Сканирование завершено!')
             with open(filename, "rb") as misc:
                 f = misc.read()
-            self.bot.send_document(int(user), f)
+            self.bot.send_document(int(user), f, visible_file_name="Отчет.csv")
 
     def bot_start(self):
         @self.bot.message_handler(content_types=['text'])
@@ -255,7 +255,7 @@ class telegram():
 
         @self.bot.callback_query_handler(func=lambda call: True)
         def callback_worker(call):
-            #print("!!!!!!!!!!!!!", self.config)
+            # print("!!!!!!!!!!!!!", self.config)
             call.data = call.data.lower()
             if call.data == "help":
                 self.bot.send_message(call.message.chat.id,
@@ -290,12 +290,12 @@ class telegram():
             elif call.data == "scan":
                 threading.Thread(target=self.scan.scan).start()
                 # Process(target=self.scan.scan).start()
-                #self.bot.send_message(call.message.chat.id, 'Сканирование началось!')
+                # self.bot.send_message(call.message.chat.id, 'Сканирование началось!')
             elif call.data == "get":
                 self.bot.send_message(call.message.chat.id, 'Лови файл!')
                 with open("iplist.csv", "rb") as misc:
                     f = misc.read()
-                self.bot.send_document(call.message.chat.id, f)
+                self.bot.send_document(call.message.chat.id, f, visible_file_name="IpList.csv")
             elif call.data == "add":
                 self.bot.send_message(call.message.chat.id, 'Кидай мне файл!')
                 self.bot.register_next_step_handler(call.message, get_ip_list_file)
