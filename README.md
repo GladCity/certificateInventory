@@ -1,6 +1,6 @@
 # certificateInventory
 
-
+```
 usage: main.py [-h] [-i IP] [-p PORT] [-I INTERVAL] [-t TOKEN]
                [-C CHECKCENTER] [-D CHECKDATE] [-y] [-k] [-n] [-e] [-a] [-l]
 
@@ -28,6 +28,7 @@ options:
   -e, --iExc            Do not allocate expired certificates
   -a, --iAlg            Do not allocate certificates with outdated algorithms
   -l, --last            Run the latest configuration
+  ```
   
 # Installation
 pip install schedule pyTelegramBotAPI pyOpenSSL psycopg2
