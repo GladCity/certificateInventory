@@ -51,6 +51,7 @@ class Scanner:
             return schedule.CancelJob
         id = self.__db.make_scan()
         for ip in self.__ips:
+            print("scanning IP:", ip)
             for port in range(self.__portb, self.__porte + 1):
                 verdict = ""
                 liste = []
@@ -79,15 +80,15 @@ class Scanner:
                     liste.append(ssl_check.is_valid_period_ends_before_specified_date(self.__check_date,
                                                                                       domain_chain))
                     verdict += liste[-1]
-
-                self.__db.insert_cert(id, verdict, domain_chain[0]["Алгоритм шифрования"],
-                                      domain_chain[0]['Серийный номер'], domain_chain[0]['Хэш имени субъекта'],
-                                      domain_chain[0]['Длинна открытого ключа'], domain_chain[0]["Кому выдан"],
-                                      domain_chain[0]["Кем выдан"], domain_chain[0]["Действует до"])
-                lists.append([ip, *liste, domain_chain[0]["Алгоритм шифрования"],
-                              domain_chain[0]['Серийный номер'], domain_chain[0]['Хэш имени субъекта'],
-                              domain_chain[0]['Длинна открытого ключа'], domain_chain[0]["Кому выдан"],
-                              domain_chain[0]["Кем выдан"], domain_chain[0]["Действует до"]])
+                if len(domain_chain) > 0:
+                    self.__db.insert_cert(id, verdict, domain_chain[0]["Алгоритм шифрования"],
+                                          domain_chain[0]['Серийный номер'], domain_chain[0]['Хэш имени субъекта'],
+                                          domain_chain[0]['Длинна открытого ключа'], domain_chain[0]["Кому выдан"],
+                                          domain_chain[0]["Кем выдан"], domain_chain[0]["Действует до"])
+                    lists.append([ip, *liste, domain_chain[0]["Алгоритм шифрования"],
+                                  domain_chain[0]['Серийный номер'], domain_chain[0]['Хэш имени субъекта'],
+                                  domain_chain[0]['Длинна открытого ключа'], domain_chain[0]["Кому выдан"],
+                                  domain_chain[0]["Кем выдан"], domain_chain[0]["Действует до"]])
         Scanner.write_csv(lists)
         threading.Thread(target=self.bot.broadcast_file, args=(("report.csv",))).start()
         # Process(target=self.__bot.broadcast_file.start, args=("report.csv")).start()
@@ -132,6 +133,7 @@ class Scanner:
                 out += Scanner.diap_to_list(i)
                 continue
             out.append(i)
+        print(out)
         return out
 
     @staticmethod
@@ -154,6 +156,3 @@ class Scanner:
     def __int2ip(addr):
         return socket.inet_ntoa(struct.pack("!I", addr))
 
-# if __name__ == "__main__":
-#     sc = Scanner(DataBase())
-#     sc.scan()

@@ -54,7 +54,7 @@ class telegram():
         self.five_minutes = datetime.timedelta(minutes=5)
         # self.db = DataBase()
         self.logger = telebot.logger
-        telebot.logger.setLevel(telebot.logging.DEBUG)
+        telebot.logger.setLevel(telebot.logging.WARNING)
         # Keyboards
         if True:
             # First keyboard
